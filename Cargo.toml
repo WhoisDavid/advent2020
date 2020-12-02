@@ -1,0 +1,17 @@
+[package]
+name = "advent2020"
+version = "0.1.0"
+authors = ["David Malinge <david.malinge@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+aoc-runner = "0.3.0"
+aoc-runner-derive = "0.3.0"
+recap = "0.1.1"
+anyhow = "1.0.34"
+serde = { version = "1.0.117", features = ["derive"] }
+regex = "1.4.2"
+lazy_static = "1.4.0"
+
