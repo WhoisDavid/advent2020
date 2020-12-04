@@ -25,7 +25,8 @@ pub fn part1(input: &TreeMap) -> usize {
 
 #[aoc(day3, part2)]
 pub fn part2(input: &TreeMap) -> usize {
-    /* Right 1, down 1.
+    /*
+       Right 1, down 1.
        Right 3, down 1. (This is the slope you already checked.)
        Right 5, down 1.
        Right 7, down 1.
