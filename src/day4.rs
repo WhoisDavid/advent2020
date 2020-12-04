@@ -1,22 +1,9 @@
-use aoc_runner_derive::{aoc, aoc_generator};
+use aoc_runner_derive::aoc;
 use recap::Recap;
 use serde::Deserialize;
 
-/// Flatten the passports into single-line strings
-#[aoc_generator(day4)]
-pub fn input_parser(input: &str) -> Vec<String> {
-    input.split("\n\n").map(|s| s.replace('\n', " ")).collect()
-}
-
 /* Part 1 */
-/// byr (Birth Year)
-/// iyr (Issue Year)
-/// eyr (Expiration Year)
-/// hgt (Height)
-/// hcl (Hair Color)
-/// ecl (Eye Color)
-/// pid (Passport ID)
-/// cid (Country ID) - Optional
+
 #[derive(Debug, Deserialize, Recap)]
 #[recap(regex = r"(?x)(
     (
@@ -28,38 +15,28 @@ pub fn input_parser(input: &str) -> Vec<String> {
         (ecl: (?P<ecl> [^\s]+ ))|
         (pid: (?P<pid> [^\s]+ ))|
         (cid: (?P<cid> [^\s]+ ))
-    )\s*
+    )[\s\n]*
 )+")]
 pub struct PassportPart1 {
-    byr: String,
-    iyr: String,
-    eyr: String,
-    hgt: String,
-    hcl: String,
-    ecl: String,
-    pid: String,
-    cid: Option<String>,
+    byr: String,         // byr (Birth Year)
+    iyr: String,         // iyr (Issue Year)
+    eyr: String,         // eyr (Expiration Year)
+    hgt: String,         // hgt (Height)
+    hcl: String,         // hcl (Hair Color)
+    ecl: String,         // ecl (Eye Color)
+    pid: String,         // pid (Passport ID)
+    cid: Option<String>, // cid (Country ID) - Optional
 }
 
 #[aoc(day4, part1)]
-pub fn part1(input: &[String]) -> usize {
+pub fn part1(input: &str) -> usize {
     input
-        .iter()
+        .split("\n\n")
         .filter_map(|s| s.parse::<PassportPart1>().ok()) // Passport is valid if it parses
         .count()
 }
 
 /* Part 2 */
-/// byr (Birth Year) - four digits; at least 1920 and at most 2002.
-/// iyr (Issue Year) - four digits; at least 2010 and at most 2020.
-/// eyr (Expiration Year) - four digits; at least 2020 and at most 2030.
-/// hgt (Height) - a number followed by either cm or in:
-/// If cm, the number must be at least 150 and at most 193.
-/// If in, the number must be at least 59 and at most 76.
-/// hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f.
-/// ecl (Eye Color) - exactly one of: amb blu brn gry grn hzl oth.
-/// pid (Passport ID) - a nine-digit number, including leading zeroes.
-/// cid (Country ID) - ignored, missing or not.
 #[derive(Debug, Deserialize, Recap)]
 #[recap(regex = r"(?x)(
     (
@@ -71,24 +48,25 @@ pub fn part1(input: &[String]) -> usize {
         (ecl:(?P<ecl> (amb|blu|brn|gry|grn|hzl|oth) ))|
         (pid:(?P<pid> \d{9} ))|
         (cid:(?P<cid> [^\s]+ ))
-    )\s*
+    )[\s\n]*
 )+")]
 pub struct PassportPart2 {
-    byr: u32,
-    iyr: u32,
-    eyr: u32,
-    hgt: u8,
-    hgt_unit: String,
-    hcl: String,
-    ecl: String,
-    pid: String,
-    cid: Option<String>,
+    byr: u32, // byr (Birth Year) - four digits; at least 1920 and at most 2002.
+    iyr: u32, // iyr (Issue Year) - four digits; at least 2010 and at most 2020.
+    eyr: u32, // eyr (Expiration Year) - four digits; at least 2020 and at most 2030.
+    hgt: u8,  // hgt (Height) - a number followed by either cm or in:
+    // If cm, the number must be at least 150 and at most 193. If in, the number must be at least 59 and at most 76.
+    hgt_unit: String,    // cm or in
+    hcl: String,         // hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f.
+    ecl: String,         // ecl (Eye Color) - exactly one of: amb blu brn gry grn hzl oth.
+    pid: String,         // pid (Passport ID) - a nine-digit number, including leading zeroes.
+    cid: Option<String>, // cid (Country ID) - ignored, missing or not.
 }
 
 #[aoc(day4, part2)]
-pub fn part2(input: &[String]) -> usize {
+pub fn part2(input: &str) -> usize {
     input
-        .iter()
+        .split("\n\n")
         .filter_map(|s| s.parse::<PassportPart2>().ok())
         .filter(|p| {
             (1920..=2002).contains(&p.byr)
