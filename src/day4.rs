@@ -135,8 +135,8 @@ pid:3556412378 byr:2007
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(&input_parser(TESTCASE)), 2);
-        assert_eq!(part2(&input_parser(VALID_PASSPORTS)), 4);
-        assert_eq!(part2(&input_parser(INVALID_PASSPORTS)), 0);
+        assert_eq!(part2(TESTCASE), 2);
+        assert_eq!(part2(VALID_PASSPORTS), 4);
+        assert_eq!(part2(INVALID_PASSPORTS), 0);
     }
 }
