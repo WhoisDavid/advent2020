@@ -2,21 +2,11 @@ use anyhow::anyhow;
 use aoc_runner_derive::{aoc, aoc_generator};
 use std::str::FromStr;
 
+type Seat = u32;
+
 #[derive(Debug, PartialEq)]
 pub struct BoardingPass {
-    row: usize,
-    col: usize,
-    seat: usize,
-}
-
-impl BoardingPass {
-    fn new(row: usize, col: usize) -> Self {
-        Self {
-            row,
-            col,
-            seat: 8 * row + col,
-        }
-    }
+    seat: Seat,
 }
 
 impl FromStr for BoardingPass {
@@ -26,35 +16,23 @@ impl FromStr for BoardingPass {
         if s.len() != 10 {
             return Err(anyhow!("Not a valid pass!"));
         }
-        let row_str = &s[0..7];
-        let col_str = &s[7..10];
 
-        let mut row = 0;
-        for c in row_str.chars() {
-            row <<= 1;
-            row += match c {
-                'F' => 0,
-                'B' => 1,
+        let mut seat = 0;
+        for c in s.chars() {
+            seat <<= 1;
+            seat += match c {
+                'F' | 'L' => 0,
+                'B' | 'R' => 1,
                 _ => return Err(anyhow!("Invalid char")),
             }
         }
 
-        let mut col = 0;
-        for c in col_str.chars() {
-            col <<= 1;
-            col += match c {
-                'L' => 0,
-                'R' => 1,
-                _ => return Err(anyhow!("Invalid char")),
-            }
-        }
-
-        Ok(BoardingPass::new(row, col))
+        Ok(BoardingPass { seat })
     }
 }
 
 #[aoc_generator(day5)]
-pub fn input_parser(input: &str) -> Vec<usize> {
+pub fn input_parser(input: &str) -> Vec<Seat> {
     input
         .lines()
         .map(|s| s.parse::<BoardingPass>().expect("Valid Pass!"))
@@ -63,29 +41,21 @@ pub fn input_parser(input: &str) -> Vec<usize> {
 }
 
 #[aoc(day5, part1)]
-pub fn part1(seats: &[usize]) -> Option<usize> {
+pub fn part1(seats: &[Seat]) -> Option<Seat> {
     seats.iter().max().copied()
 }
 
 #[aoc(day5, part2, xor)]
-pub fn part2_xor(seats: &[usize]) -> Option<usize> {
-    let seats_xor = seats.iter().fold(0, |acc, x| acc ^ *x);
-    let full_range_xor = (*seats.iter().min()?..=*seats.iter().max()?).fold(0, |acc, x| acc ^ x);
+pub fn part2_xor(seats: &[Seat]) -> Option<Seat> {
+    let seats_xor = seats.iter().fold(0, |acc, b| acc ^ b);
+    let full_range_xor = (*seats.iter().min()?..=*seats.iter().max()?).fold(0, |acc, b| acc ^ b);
     Some(seats_xor ^ full_range_xor)
 }
 
-#[aoc(day5, part2, sort)]
-pub fn part2_sort(seats: &[usize]) -> Option<usize> {
-    let mut seats = seats.to_vec();
-    seats.sort();
-    let mut cur = seats[0];
-    for &s in seats.iter().skip(1) {
-        if s != cur + 1 {
-            return Some(cur + 1);
-        }
-        cur = s;
-    }
-    None
+#[aoc(day5, part2, sum)]
+pub fn part2_sum(seats: &[Seat]) -> Option<Seat> {
+    let (min, max) = (*seats.iter().min()?, *seats.iter().max()?);
+    Some((min..=max).sum::<Seat>() - seats.iter().sum::<Seat>())
 }
 
 #[cfg(test)]
@@ -99,11 +69,8 @@ mod test_day5 {
             ("BBFFBBFRLL", (102, 4, 820)),
         ];
 
-        for (s, (row, col, seat)) in tests.into_iter() {
-            assert_eq!(
-                s.parse::<BoardingPass>().unwrap(),
-                BoardingPass { row, col, seat }
-            );
+        for (s, (_row, _col, seat)) in tests.into_iter() {
+            assert_eq!(s.parse::<BoardingPass>().unwrap(), BoardingPass { seat });
         }
     }
 }
