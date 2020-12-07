@@ -1,8 +1,10 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use lazy_static::lazy_static;
-use regex::Regex;
 use std::collections::{HashMap, HashSet};
+use recap::Recap;
+use serde::Deserialize;
 
+#[derive(Debug, Recap, Deserialize)]
+#[recap(regex = r"^(?P<n>\d+) (?P<color>.*) bags?\.?$")]
 pub struct Bag {
     color: String,
     n: usize,
@@ -22,20 +24,9 @@ pub fn input_parser(input: &str) -> OuterToInners {
             // inners == "1 dark olive bag, 2 vibrant plum bags."
             let inners = split.next().expect("inner bag(s)");
 
-            // Match inners e.g n="1" and bag_color="dark olive"
-            lazy_static! {
-                static ref INNER_RE: Regex =
-                    Regex::new(r"(?P<n>\d+) (?P<bag_color>.*?) bag[s]?(, |.)").unwrap();
-            }
-            let inners: Vec<Bag> = INNER_RE
-                .captures_iter(inners)
-                .map(|c| {
-                    let color = c["bag_color"].to_string();
-                    let n = c["n"].parse::<usize>().expect("Integer");
-                    Bag { color, n }
-                })
-                .collect();
-    
+            // Parse into Bags
+            let inners: Vec<Bag> = inners.split(", ").filter_map(|c| c.parse().ok()).collect(); // filters out "no other bags"
+
             (outer.to_string(), inners)
         })
         .collect()
