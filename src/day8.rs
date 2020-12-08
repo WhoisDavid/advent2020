@@ -79,22 +79,22 @@ pub fn part2(program: &[Instruction]) -> Option<isize> {
     None
 }
 
-// Still unoptimized but at least removed the the 500 Vec allocation... (79 us)
+// Still unoptimized but at least removed the 500 Vec allocation... (79 us)
 #[aoc(day8, part2, BruteForceNoAlloc)]
 pub fn part2_noalloc(program: &[Instruction]) -> Option<isize> {
-    let mut mut_program = program.to_vec();
+    let mut program_mut = program.to_vec();
     let mut previous_swap = None;
     for (pc, instruction) in program.iter().enumerate() {
         if instruction.op == Operation::Jmp || instruction.op == Operation::Nop {
             // Swap back the previous swap
             if let Some(prev_pc) = previous_swap {
-                swap_op(&mut mut_program[prev_pc])
+                swap_op(&mut program_mut[prev_pc])
             }
             // Swap operation
-            swap_op(&mut mut_program[pc]);
+            swap_op(&mut program_mut[pc]);
             previous_swap = Some(pc);
 
-            let (acc, terminated) = run_program(&mut_program);
+            let (acc, terminated) = run_program(&program_mut);
             if terminated {
                 return Some(acc);
             }
