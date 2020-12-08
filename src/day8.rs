@@ -25,28 +25,28 @@ pub fn input_parser(input: &str) -> Vec<Instruction> {
 }
 
 fn run_program(program: &[Instruction]) -> (isize, bool) {
+    let mut pc = 0;
     let mut acc = 0;
-    let mut idx = 0;
     let mut seen = vec![false; program.len()];
-    while idx < program.len() && !seen[idx] {
-        seen[idx] = true;
-        let cur = &program[idx];
+    while pc < program.len() && !seen[pc] {
+        seen[pc] = true;
+        let cur = &program[pc];
         match &cur.op {
             Operation::Acc => {
                 acc += cur.arg;
-                idx += 1;
+                pc += 1;
             }
             Operation::Jmp => {
                 if cur.arg >= 0 {
-                    idx += cur.arg as usize
+                    pc += cur.arg as usize
                 } else {
-                    idx -= cur.arg.abs() as usize
+                    pc -= cur.arg.abs() as usize
                 }
             }
-            Operation::Nop => idx += 1,
+            Operation::Nop => pc += 1,
         };
     }
-    let terminated = idx >= program.len();
+    let terminated = pc >= program.len();
     (acc, terminated)
 }
 
@@ -66,10 +66,10 @@ fn swap_op(inst: &mut Instruction) {
 // Super unoptimized but actually worked really fast (127 us..) >.<
 #[aoc(day8, part2, BruteForce)]
 pub fn part2(program: &[Instruction]) -> Option<isize> {
-    for (idx, instruction) in program.iter().enumerate() {
+    for (pc, instruction) in program.iter().enumerate() {
         if instruction.op == Operation::Jmp || instruction.op == Operation::Nop {
             let mut prog = program.to_vec();
-            swap_op(&mut prog[idx]);
+            swap_op(&mut prog[pc]);
             let (acc, terminated) = run_program(&prog);
             if terminated {
                 return Some(acc);
@@ -84,15 +84,15 @@ pub fn part2(program: &[Instruction]) -> Option<isize> {
 pub fn part2_noalloc(program: &[Instruction]) -> Option<isize> {
     let mut mut_program = program.to_vec();
     let mut previous_swap = None;
-    for (idx, instruction) in program.iter().enumerate() {
+    for (pc, instruction) in program.iter().enumerate() {
         if instruction.op == Operation::Jmp || instruction.op == Operation::Nop {
             // Swap back the previous swap
-            if let Some(prev) = previous_swap {
-                swap_op(&mut mut_program[prev])
+            if let Some(prev_pc) = previous_swap {
+                swap_op(&mut mut_program[prev_pc])
             }
             // Swap operation
-            swap_op(&mut mut_program[idx]);
-            previous_swap = Some(idx);
+            swap_op(&mut mut_program[pc]);
+            previous_swap = Some(pc);
 
             let (acc, terminated) = run_program(&mut_program);
             if terminated {
