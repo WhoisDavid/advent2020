@@ -28,8 +28,31 @@ pub fn part1(data: &[usize]) -> Option<usize> {
     None
 }
 
+fn two_sum_nested_loop(v: &[usize], target: usize) -> bool {
+    for (i, vi) in v.iter().enumerate() {
+        for vj in v.iter().skip(i + 1) {
+            if vi + vj == target {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Because of the small size of the input a nested loop in O(n^2) is actually 10x faster...
+#[aoc(day9, part1, nested_loop)]
+pub fn part1_nested_loop(input: &[usize]) -> Option<usize> {
+    let window_size = 25;
+    for i in window_size..input.len() {
+        if !two_sum_nested_loop(&input[i - window_size..i], input[i]) {
+            return Some(input[i]);
+        }
+    }
+    None
+}
+
 /// Find a subarray whose sum matches target
-/// Returns (if found) the indices start and end of the subarray 
+/// Returns (if found) the indices start and end of the subarray
 /// s.t. array[start..=end] sums to target
 fn subarray_sum_lookup(array: &[usize], target: usize) -> Option<(usize, usize)> {
     let prefix: Vec<usize> = array
@@ -54,7 +77,7 @@ fn subarray_sum_lookup(array: &[usize], target: usize) -> Option<(usize, usize)>
 pub fn part2(data: &[usize]) -> Option<usize> {
     let p1 = part1(data)?;
     let (start, end) = subarray_sum_lookup(data, p1)?;
-    let range = &data[start ..=end];
+    let range = &data[start..=end];
     assert_eq!(range.iter().sum::<usize>(), p1);
     Some(range.iter().min()? + range.iter().max()?)
 }
