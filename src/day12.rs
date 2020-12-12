@@ -75,7 +75,7 @@ impl Default for Nav {
 impl Nav {
     const DIRS: [Action; 4] = [Action::E, Action::S, Action::W, Action::N];
 
-    fn execute(&mut self, instruction: &Instruction) {
+    fn execute_part1(&mut self, instruction: &Instruction) {
         let value = instruction.value;
         match instruction.action {
             Action::N => {
@@ -92,7 +92,7 @@ impl Nav {
             }
             Action::L => self.dir -= value,
             Action::R => self.dir += value,
-            Action::F => self.execute(&Instruction {
+            Action::F => self.execute_part1(&Instruction {
                 action: Nav::DIRS[self.dir.rem_euclid(360) as usize / 90],
                 value,
             }),
@@ -103,31 +103,31 @@ impl Nav {
         self.ship.x.abs() + self.ship.y.abs()
     }
 
-    fn execute2(&mut self, instruction: &Instruction) {
-        let value = instruction.value;
+    fn execute_part2(&mut self, instruction: &Instruction) {
+        let v = instruction.value;
         match instruction.action {
             Action::N => {
-                self.waypoint.x -= value;
+                self.waypoint.x -= v;
             }
             Action::S => {
-                self.waypoint.x += value;
+                self.waypoint.x += v;
             }
             Action::E => {
-                self.waypoint.y += value;
+                self.waypoint.y += v;
             }
             Action::W => {
-                self.waypoint.y -= value;
+                self.waypoint.y -= v;
             }
             Action::L => {
                 let (x, y) = (self.waypoint.x, self.waypoint.y);
-                match value.rem_euclid(360) {
+                match v.rem_euclid(360) {
                     0 => {}
                     90 => {
                         // 90º rotation
                         self.waypoint.x = -y;
                         self.waypoint.y = x;
                     }
-                    190 => {
+                    180 => {
                         // 180º rotation
                         self.waypoint.x = -x;
                         self.waypoint.y = -y;
@@ -140,13 +140,13 @@ impl Nav {
                     _ => unreachable!(),
                 };
             }
-            Action::R => self.execute2(&Instruction {
+            Action::R => self.execute_part2(&Instruction {
                 action: Action::L,
-                value: 360 - value.rem_euclid(360),
+                value: 360 - v.rem_euclid(360),
             }),
             Action::F => {
-                self.ship.x += value * self.waypoint.x;
-                self.ship.y += value * self.waypoint.y;
+                self.ship.x += v * self.waypoint.x;
+                self.ship.y += v * self.waypoint.y;
             }
         }
     }
@@ -155,14 +155,14 @@ impl Nav {
 #[aoc(day12, part1)]
 pub fn part1(input: &[Instruction]) -> isize {
     let mut nav = Nav::default();
-    input.iter().for_each(|a| nav.execute(a));
+    input.iter().for_each(|a| nav.execute_part1(a));
     nav.manhattan_distance()
 }
 
 #[aoc(day12, part2)]
 pub fn part2(input: &[Instruction]) -> isize {
     let mut nav = Nav::default();
-    input.iter().for_each(|a| nav.execute2(a));
+    input.iter().for_each(|a| nav.execute_part2(a));
     nav.manhattan_distance()
 }
 
