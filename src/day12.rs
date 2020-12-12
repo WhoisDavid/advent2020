@@ -2,45 +2,50 @@ use anyhow::{anyhow, Result};
 use aoc_runner_derive::{aoc, aoc_generator};
 use std::str::FromStr;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Copy, Clone)]
 pub enum Action {
-    N(isize),
-    S(isize),
-    E(isize),
-    W(isize),
-    L(isize),
-    R(isize),
-    F(isize),
-}
-
-pub enum Direction {
     N,
     S,
     E,
     W,
+    L,
+    R,
+    F,
+}
+pub struct Instruction {
+    action: Action,
+    value: isize,
 }
 
 impl FromStr for Action {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let action = &s[0..1];
+        Ok(match s {
+            "N" => Self::N,
+            "S" => Self::S,
+            "E" => Self::E,
+            "W" => Self::W,
+            "L" => Self::L,
+            "R" => Self::R,
+            "F" => Self::F,
+            c => return Err(anyhow!("Invalid char: {}", c)),
+        })
+    }
+}
+
+impl FromStr for Instruction {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let action = s[0..1].parse()?;
         let value = s[1..].parse::<isize>()?;
-        match action {
-            "N" => Ok(Self::N(value)),
-            "S" => Ok(Self::S(value)),
-            "E" => Ok(Self::E(value)),
-            "W" => Ok(Self::W(value)),
-            "L" => Ok(Self::L(value / 90)), // normalize by 90º rotations
-            "R" => Ok(Self::R(value / 90)),
-            "F" => Ok(Self::F(value)),
-            c => Err(anyhow!("Invalid char: {}", c)),
-        }
+        Ok(Instruction { action, value })
     }
 }
 
 #[aoc_generator(day12)]
-pub fn input_parser(input: &str) -> Vec<Action> {
+pub fn input_parser(input: &str) -> Vec<Instruction> {
     input
         .lines()
         .map(|s| s.parse().expect("Instruction!"))
@@ -68,33 +73,29 @@ impl Default for Nav {
 }
 
 impl Nav {
-    const DIRS: [Direction; 4] = [Direction::E, Direction::S, Direction::W, Direction::N];
+    const DIRS: [Action; 4] = [Action::E, Action::S, Action::W, Action::N];
 
-    fn execute(&mut self, a: &Action) {
-        match a {
-            Action::N(v) => {
-                self.ship.x -= v;
+    fn execute(&mut self, instruction: &Instruction) {
+        let value = instruction.value;
+        match instruction.action {
+            Action::N => {
+                self.ship.x -= value;
             }
-            Action::S(v) => {
-                self.ship.x += v;
+            Action::S => {
+                self.ship.x += value;
             }
-            Action::E(v) => {
-                self.ship.y += v;
+            Action::E => {
+                self.ship.y += value;
             }
-            Action::W(v) => {
-                self.ship.y -= v;
+            Action::W => {
+                self.ship.y -= value;
             }
-            Action::L(v) => self.dir -= v,
-            Action::R(v) => self.dir += v,
-            Action::F(v) => {
-                let a = match Nav::DIRS[self.dir.rem_euclid(4) as usize] {
-                    Direction::N => Action::N(*v),
-                    Direction::S => Action::S(*v),
-                    Direction::E => Action::E(*v),
-                    Direction::W => Action::W(*v),
-                };
-                self.execute(&a)
-            }
+            Action::L => self.dir -= value,
+            Action::R => self.dir += value,
+            Action::F => self.execute(&Instruction {
+                action: Nav::DIRS[self.dir.rem_euclid(360) as usize / 90],
+                value,
+            }),
         }
     }
 
@@ -102,57 +103,64 @@ impl Nav {
         self.ship.x.abs() + self.ship.y.abs()
     }
 
-    fn execute2(&mut self, a: &Action) {
-        match a {
-            Action::N(v) => {
-                self.waypoint.x -= v;
+    fn execute2(&mut self, instruction: &Instruction) {
+        let value = instruction.value;
+        match instruction.action {
+            Action::N => {
+                self.waypoint.x -= value;
             }
-            Action::S(v) => {
-                self.waypoint.x += v;
+            Action::S => {
+                self.waypoint.x += value;
             }
-            Action::E(v) => {
-                self.waypoint.y += v;
+            Action::E => {
+                self.waypoint.y += value;
             }
-            Action::W(v) => {
-                self.waypoint.y -= v;
+            Action::W => {
+                self.waypoint.y -= value;
             }
-            Action::L(v) => {
+            Action::L => {
                 let (x, y) = (self.waypoint.x, self.waypoint.y);
-                match v.rem_euclid(4) {
+                match value.rem_euclid(360) {
                     0 => {}
-                    1 => { // 90º rotation
+                    90 => {
+                        // 90º rotation
                         self.waypoint.x = -y;
                         self.waypoint.y = x;
                     }
-                    2 => { // 180º rotation
+                    190 => {
+                        // 180º rotation
                         self.waypoint.x = -x;
                         self.waypoint.y = -y;
                     }
-                    3 => { // 270º rotation
+                    270 => {
+                        // 270º rotation
                         self.waypoint.x = y;
                         self.waypoint.y = -x
                     }
                     _ => unreachable!(),
                 };
             }
-            Action::R(v) => self.execute2(&Action::L(4 - v.rem_euclid(4))),
-            Action::F(v) => {
-                self.ship.x += v * self.waypoint.x;
-                self.ship.y += v * self.waypoint.y;
+            Action::R => self.execute2(&Instruction {
+                action: Action::L,
+                value: 360 - value.rem_euclid(360),
+            }),
+            Action::F => {
+                self.ship.x += value * self.waypoint.x;
+                self.ship.y += value * self.waypoint.y;
             }
         }
     }
 }
 
 #[aoc(day12, part1)]
-pub fn part1(input: &[Action]) -> isize {
+pub fn part1(input: &[Instruction]) -> isize {
     let mut nav = Nav::default();
     input.iter().for_each(|a| nav.execute(a));
     nav.manhattan_distance()
 }
 
 #[aoc(day12, part2)]
-pub fn part2(input: &[Action]) -> isize {
+pub fn part2(input: &[Instruction]) -> isize {
     let mut nav = Nav::default();
     input.iter().for_each(|a| nav.execute2(a));
     nav.manhattan_distance()
