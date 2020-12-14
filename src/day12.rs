@@ -56,6 +56,7 @@ struct Coord {
     x: isize,
     y: isize,
 }
+
 struct Nav {
     ship: Coord,
     waypoint: Coord,
