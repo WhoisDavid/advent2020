@@ -20,11 +20,11 @@ fn memory_game(starting_numbers: &[Int], nth: usize) -> Int {
     // Go turn by turn and apply rule...
     let mut last_spoken = *starting_numbers.last().unwrap();
     for turn in starting_numbers.len()..nth {
-        if (turn + 1) % 100_000 == 0 {
+        if turn % 100_000 == 0 {
             // Improvised progress bar :-)
             print!(
                 "\r[{:<20}] - Turn {}/{}\r",
-                "=".repeat(20 * (turn + 1) / nth),
+                "=".repeat(20 * turn / nth),
                 turn,
                 nth
             );
