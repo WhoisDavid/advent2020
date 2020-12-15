@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use aoc_runner_derive::{aoc, aoc_generator};
+use std::collections::HashMap;
 
 type Int = u64;
 
@@ -10,11 +9,10 @@ pub fn input_parser(input: &str) -> Vec<Int> {
 }
 
 fn memory_game(starting_numbers: &[Int], nth: usize) -> Int {
-    let mut hm = HashMap::new();
+    let mut hm: HashMap<Int, Vec<usize>> = HashMap::new();
     // Insert starting numbers
     for (turn, &i) in starting_numbers.iter().enumerate() {
-        hm.insert(i, Vec::with_capacity(2));
-        hm.entry(i).and_modify(|v| v.push(turn));
+        hm.entry(i).or_default().push(turn);
     }
 
     // Go turn by turn and apply rule...
@@ -39,9 +37,7 @@ fn memory_game(starting_numbers: &[Int], nth: usize) -> Int {
             _ => 0,
         };
         // Always insert the current turn for the last spoken number
-        hm.entry(last_spoken)
-            .or_insert(Vec::with_capacity(2))
-            .push(turn);
+        hm.entry(last_spoken).or_default().push(turn);
     }
 
     // Clear progress bar
