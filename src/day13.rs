@@ -2,28 +2,28 @@ use aoc_runner_derive::{aoc, aoc_generator};
 
 #[derive(Debug, Clone)]
 pub struct Bus {
-    id: usize,
-    offset: usize,
+    id: i64,
+    offset: i64,
 }
 
 #[derive(Debug)]
 pub struct Input {
-    ts: usize,
+    ts: i64,
     buses: Vec<Bus>,
 }
 
 #[aoc_generator(day13)]
 pub fn input_parser(input: &str) -> Option<Input> {
     let mut lines = input.lines();
-    let ts = lines.next()?.parse::<usize>().ok()?;
+    let ts = lines.next()?.parse::<i64>().ok()?;
     let buses = lines
         .next()?
         .split(",")
         .enumerate()
         .filter_map(|(pos, s)| {
             Some(Bus {
-                id: s.parse::<usize>().ok()?,
-                offset: pos,
+                id: s.parse::<i64>().ok()?,
+                offset: pos as i64,
             })
         })
         .collect();
@@ -31,7 +31,7 @@ pub fn input_parser(input: &str) -> Option<Input> {
 }
 
 #[aoc(day13, part1)]
-pub fn part1(input: &Input) -> Option<usize> {
+pub fn part1(input: &Input) -> Option<i64> {
     let a = input
         .buses
         .iter()
@@ -41,7 +41,7 @@ pub fn part1(input: &Input) -> Option<usize> {
 }
 
 #[aoc(day13, part2)]
-pub fn part2(input: &Input) -> Option<usize> {
+pub fn part2(input: &Input) -> Option<i64> {
     let mut acc = input.buses[0].clone();
     // Solve by finding the (offset + cycle) for each element
     for b in input.buses.iter().skip(1) {
@@ -55,14 +55,19 @@ pub fn part2(input: &Input) -> Option<usize> {
 fn cycle_euclide(a: &Bus, b: &Bus) -> Bus {
     // solve a.id * x + a.pos = b.id * y - b.pos
     // <=> b.id * y - a.id * x  = - (a.pos + b.pos)
-    let (x, _y) = diophantine(
-        a.id as i128,
-        -(b.id as i128),
-        -(a.offset as i128 + b.offset as i128),
-    );
+    let (x, _y) = diophantine(a.id as i128, -b.id as i128, (-a.offset - b.offset) as i128);
 
     let lcm = a.id * b.id; // primes so lcm == product
-    let offset = (a.id as i128 * x + a.offset as i128).rem_euclid(lcm as i128) as usize;
+
+    // offset = (a.id * x + a.pos) % lcm
+    // `a.id * x` requires i128 to avoid overflow
+    let mut offset = (a.id as i128)
+        .checked_mul(x as i128)
+        .unwrap()
+        .rem_euclid(lcm as i128) as i64;
+
+    offset = offset.checked_add(a.offset).unwrap().rem_euclid(lcm);
+
     Bus { id: lcm, offset }
 }
 
@@ -78,14 +83,14 @@ fn diophantine(a: i128, b: i128, c: i128) -> (i128, i128) {
         // otherwise solve: (bq +r)x + by = c <=>  (qx+y)b + rx = c
         // i = qx +y, j = x => (x, y) = (j, i-qx)
         let (i, j) = diophantine(b, r, c);
-        (j, i - q * j)
+        (j, i.checked_sub(q.checked_mul(j).unwrap()).unwrap())
     }
 }
 
 // Unfortunately too slow...
 fn _cycle_finder(a: &Bus, b: &Bus) -> Bus {
     let offset = (0..)
-        .step_by(a.id)
+        .step_by(a.id as usize)
         .map(|i| i + a.offset)
         .find(|i| b.id - i % b.id == b.offset)
         .unwrap();
