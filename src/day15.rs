@@ -36,7 +36,7 @@ fn memory_game(starting_numbers: &[Int], nth: usize) -> Int {
             // Otherwise, the last spoken is 0
             _ => 0,
         };
-        
+
         last_spoken = spoken;
     }
 
