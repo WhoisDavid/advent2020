@@ -9,13 +9,14 @@ pub fn input_parser(input: &str) -> Vec<Int> {
 }
 
 fn memory_game(starting_numbers: &[Int], nth: usize) -> Int {
-    let mut hm: HashMap<Int, Vec<usize>> = HashMap::new();
+    let mut hm: HashMap<Int, usize> = HashMap::new();
     // Insert starting numbers
     for (turn, &i) in starting_numbers.iter().enumerate() {
-        hm.entry(i).or_default().push(turn);
+        hm.insert(i, turn);
     }
 
     // Go turn by turn and apply rule...
+    // hm.insert(*starting_numbers.last().unwrap(), starting_numbers.len());
     let mut last_spoken = *starting_numbers.last().unwrap();
     for turn in starting_numbers.len()..nth {
         if turn % 100_000 == 0 {
@@ -27,17 +28,16 @@ fn memory_game(starting_numbers: &[Int], nth: usize) -> Int {
                 nth
             );
         }
-        last_spoken = match hm.get_mut(&last_spoken) {
-            // If the last spoken was seen twice, the new one is the difference of turns (and we remove the oldest turn)
-            Some(prev) if prev.len() == 2 => {
-                let p = prev.swap_remove(0);
-                (prev[0] - p) as Int
-            }
+
+        // Always insert the current turn for the last spoken number
+        let spoken = match hm.insert(last_spoken, turn - 1) {
+            // If the last spoken was seen, the new one is the difference of turns
+            Some(prev) => (turn - 1 - prev) as Int,
             // Otherwise, the last spoken is 0
             _ => 0,
         };
-        // Always insert the current turn for the last spoken number
-        hm.entry(last_spoken).or_default().push(turn);
+        
+        last_spoken = spoken;
     }
 
     // Clear progress bar
