@@ -1,5 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use itertools::iproduct;
+use itertools::{iproduct, Itertools};
 use std::collections::HashSet;
 
 type Int = isize;
@@ -35,6 +35,7 @@ pub fn part1(grid: &Grid3D) -> usize {
         grid.iter()
             .copied()
             .flat_map(get_neighbors_3d) // get all neighbors to visit
+            .unique()// remove duplicates
             .filter(|c| {
                 let active_neighbors = get_neighbors_3d(*c)
                     .filter(|neighbor| grid.contains(neighbor))
@@ -83,6 +84,7 @@ pub fn part2(grid: &Grid4D) -> usize {
         grid.iter()
             .copied()
             .flat_map(get_neighbors_4d) // get all neighbors to visit
+            .unique() // remove duplicates
             .filter(|c| {
                 let active_neighbors = get_neighbors_4d(*c)
                     .filter(|neighbor| grid.contains(neighbor))
