@@ -16,7 +16,6 @@ fn memory_game(starting_numbers: &[Int], nth: usize) -> Int {
     }
 
     // Go turn by turn and apply rule...
-    // hm.insert(*starting_numbers.last().unwrap(), starting_numbers.len());
     let mut last_spoken = *starting_numbers.last().unwrap();
     for turn in starting_numbers.len()..nth {
         if turn % 100_000 == 0 {
