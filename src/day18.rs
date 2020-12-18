@@ -1,4 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+
 #[derive(Debug, Copy, Clone)]
 pub enum Token {
     Digit(u64),
@@ -6,19 +7,6 @@ pub enum Token {
     Mul,
     ParenL,
     ParenR,
-}
-
-impl std::fmt::Display for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = match self {
-            Token::Digit(d) => d.to_string(),
-            Token::Add => String::from("+"),
-            Token::Mul => String::from("*"),
-            Token::ParenL => String::from("("),
-            Token::ParenR => String::from(")"),
-        };
-        f.write_fmt(format_args!("{}", s))
-    }
 }
 
 #[aoc_generator(day18)]
@@ -121,12 +109,12 @@ fn insert_precedence_paren(mut expr: Vec<Token>) -> Vec<Token> {
             let start = match &expr[idx - 1] {
                 Token::Digit(_) => idx - 1,
                 Token::ParenR => match_left_paren(&expr, idx - 1),
-                other => panic!("{:?}", other),
+                other => unreachable!("{:?}", other),
             };
             let end = match &expr[idx + 1] {
                 Token::Digit(_) => idx + 2,
                 Token::ParenL => 1 + match_right_paren(&expr, idx + 1),
-                other => panic!("{:?}", other),
+                other => unreachable!("{:?}", other),
             };
             expr.insert(end, Token::ParenR);
             expr.insert(start, Token::ParenL);
@@ -139,7 +127,11 @@ fn insert_precedence_paren(mut expr: Vec<Token>) -> Vec<Token> {
 
 #[aoc(day18, part2)]
 pub fn part2(input: &[Vec<Token>]) -> u64 {
-    input.iter().cloned().map(|t| eval(&insert_precedence_paren(t))).sum()
+    input
+        .iter()
+        .cloned()
+        .map(|t| eval(&insert_precedence_paren(t)))
+        .sum()
 }
 
 #[cfg(test)]
