@@ -1,6 +1,6 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+use hashbrown::HashSet; // 2x faster than with std::collections::HashSet;
 use itertools::{iproduct, Itertools};
-use std::collections::HashSet;
 
 type Int = isize;
 type Coord3D = (Int, Int, Int);
@@ -35,7 +35,7 @@ pub fn part1(grid: &Grid3D) -> usize {
         grid.iter()
             .copied()
             .flat_map(get_neighbors_3d) // get all neighbors to visit
-            .unique()// remove duplicates
+            .unique() // remove duplicates
             .filter(|c| {
                 let active_neighbors = get_neighbors_3d(*c)
                     .filter(|neighbor| grid.contains(neighbor))
