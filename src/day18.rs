@@ -107,16 +107,21 @@ fn insert_precedence_paren(mut expr: Vec<Token>) -> Vec<Token> {
     while idx < expr.len() {
         if matches!(&expr[idx], Token::Add) {
             let start = match &expr[idx - 1] {
+                // A + ..
                 Token::Digit(_) => idx - 1,
+                // (..) + ..
                 Token::ParenR => match_left_paren(&expr, idx - 1),
                 other => unreachable!("{:?}", other),
             };
+            
             let end = match &expr[idx + 1] {
-                Token::Digit(_) => idx + 2,
-                Token::ParenL => 1 + match_right_paren(&expr, idx + 1),
+                // .. + A
+                Token::Digit(_) => idx + 1,
+                // .. + (..)
+                Token::ParenL => match_right_paren(&expr, idx + 1),
                 other => unreachable!("{:?}", other),
             };
-            expr.insert(end, Token::ParenR);
+            expr.insert(end + 1, Token::ParenR);
             expr.insert(start, Token::ParenL);
             idx += 1;
         }
