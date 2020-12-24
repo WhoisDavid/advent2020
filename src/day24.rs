@@ -115,10 +115,12 @@ impl Grid {
         self.map.values().filter(|v| **v).count()
     }
 
-    const DIRS: [Direction; 6] = [E, SE, SW, W, NW, NE];
+    const NEIGHBORS_DIRS: [Direction; 6] = [E, SE, SW, W, NW, NE];
 
     fn neighbors(xy: (isize, isize)) -> impl Iterator<Item = (isize, isize)> {
-        Self::DIRS.iter().map(move |d| Self::step_xy(xy, d))
+        Self::NEIGHBORS_DIRS
+            .iter()
+            .map(move |d| Self::step_xy(xy, d))
     }
 
     fn daily_flip(&mut self) {
